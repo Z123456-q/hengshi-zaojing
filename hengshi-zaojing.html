@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3b82f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="衡时造境">
+<link rel="manifest" href="./hengshi-manifest.json">
+<link rel="icon" type="image/png" href="./icons/workspace-192.png">
+<link rel="apple-touch-icon" href="./icons/workspace-apple.png">
+<title>衡时造境</title>
+<style>
+:root{
+  --bg:#f0f2f5; --surface:#ffffff; --surface2:#f8fafc; --surface3:#eef2f6;
+  --txt:#1e293b; --txt2:#334155; --muted:#64748b; --muted2:#94a3b8;
+  --accent:#3b82f6; --accent2:#60a5fa; --accent-light:#dbeafe;
+  --green:#22c55e; --red:#ef4444; --yellow:#fbbf24; --yellow-light:#fef3c7;
+  --cyan:#06b6d4; --pink:#ec4899; --orange:#f97316; --purple:#8b5cf6;
+  --border:#e2e8f0; --border2:#cbd5e1;
+  --shadow:0 2px 16px rgba(0,0,0,.05); --shadow2:0 8px 30px rgba(0,0,0,.08);
+  --sidebar-w:230px;
+}
+[data-theme="dark"]{
+  --bg:#0a0e1a; --surface:#131826; --surface2:#1a2033; --surface3:#222a42;
+  --txt:#e8ecf4; --txt2:#cbd5e1; --muted:#94a3b8; --muted2:#64748b;
+  --accent:#3b82f6; --accent2:#60a5fa; --accent-light:rgba(59,130,246,.15);
+  --green:#22c55e; --red:#ef4444; --yellow:#fbbf24; --yellow-light:rgba(251,191,36,.12);
+  --cyan:#22d3ee; --pink:#f472b6; --orange:#fb923c; --purple:#a78bfa;
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.12);
+  --shadow:0 2px 16px rgba(0,0,0,.2); --shadow2:0 8px 30px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--txt);
+  display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;
+  transition:background .3s,color .3s;
+}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+
+/* ===== 侧边栏 ===== */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s,background .3s;
+}
+.sidebar-header{padding:28px 16px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.logo{
+  width:52px;height:52px;border-radius:14px;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:#fff;letter-spacing:1px;
+  box-shadow:0 4px 16px rgba(59,130,246,.3);
+}
+.sidebar-header h2{font-size:18px;font-weight:800;letter-spacing:2px}
+.sidebar-header p{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px}
+
+.nav{flex:1;padding:14px 12px;overflow-y:auto}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+  cursor:pointer;transition:all .2s;margin-bottom:4px;color:var(--muted);
+  position:relative;font-size:14px;font-weight:500;
+}
+.nav-item:hover{background:var(--surface2);color:var(--txt)}
+.nav-item.active{background:var(--accent-light);color:var(--accent)}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;background:var(--accent);border-radius:0 3px 3px 0;
+}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+
+.sidebar-footer{padding:14px;border-top:1px solid var(--border);text-align:center}
+.theme-toggle{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;margin-bottom:10px;
+  transition:all .2s;width:100%;
+}
+.theme-toggle:hover{color:var(--txt)}
+.sidebar-footer .streak{font-size:11px;color:var(--muted);margin-bottom:8px}
+.sidebar-footer .install-btn{
+  width:100%;padding:8px;border-radius:10px;border:1px solid var(--accent);
+  background:transparent;color:var(--accent);font-size:12px;cursor:pointer;
+  font-weight:600;transition:all .2s;
+}
+.sidebar-footer .install-btn:hover{background:var(--accent);color:#fff}
+
+/* ===== 主内容 ===== */
+.main{flex:1;margin-left:var(--sidebar-w);height:100vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:20px 22px 40px;max-width:860px;margin:0 auto;animation:fade .3s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== 首页 Hero 卡片 ===== */
+.hero-card{
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  border-radius:24px;padding:24px;color:#fff;
+  box-shadow:0 12px 36px rgba(59,130,246,.3);
+  margin-bottom:16px;position:relative;overflow:hidden;
+}
+.hero-card::before{
+  content:'';position:absolute;right:-50px;top:-50px;width:180px;height:180px;
+  background:rgba(255,255,255,.08);border-radius:50%;
+}
+.hero-card::after{
+  content:'';position:absolute;right:20px;bottom:-30px;width:100px;height:100px;
+  background:rgba(255,255,255,.05);border-radius:50%;
+}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.hero-left .date{font-size:14px;opacity:.9;font-weight:500}
+.hero-left .time{font-size:48px;font-weight:800;line-height:1;letter-spacing:-2px;margin-top:4px;font-variant-numeric:tabular-nums}
+.hero-left .sec{font-size:16px;opacity:.7;margin-top:2px}
+.hero-right{text-align:right}
+.hero-weather{
+  display:flex;align-items:center;gap:8px;justify-content:flex-end;
+  font-size:14px;font-weight:500;
+}
+.hero-weather .w-icon{font-size:28px}
+.hero-weather .w-temp{font-size:28px;font-weight:700}
+.hero-weather .w-desc{font-size:12px;opacity:.85;margin-top:2px}
+.hero-streak{
+  display:flex;align-items:center;gap:16px;margin-top:18px;position:relative;z-index:1;
+}
+.hero-streak .item{display:flex;align-items:center;gap:6px;font-size:13px;opacity:.92}
+.hero-streak .item .num{font-size:22px;font-weight:800}
+.week-bar{display:flex;justify-content:space-between;gap:5px;margin-top:16px;position:relative;z-index:1}
+.week-day{
+  flex:1;text-align:center;padding:8px 0;border-radius:10px;
+  background:rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.8);transition:all .2s;
+}
+.week-day.today{background:rgba(255,255,255,.3);color:#fff;font-weight:700}
+.week-day.done{background:rgba(255,255,255,.25);color:#fff}
+
+/* ===== 每日一句 ===== */
+.quote-card{
+  background:var(--yellow-light);border-radius:18px;padding:16px 20px;
+  margin-bottom:16px;border:1px solid rgba(251,191,36,.15);
+}
+.quote-card .label{font-size:13px;color:#b45309;font-weight:700;margin-bottom:6px}
+.quote-card .cn{font-size:17px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.quote-card .en{font-size:13px;color:var(--muted);font-style:italic}
+
+/* ===== 功能网格 ===== */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-card{
+  background:var(--surface);border-radius:18px;padding:20px 16px;
+  text-align:center;border:1px solid var(--border);box-shadow:var(--shadow);
+  cursor:pointer;transition:all .2s;
+}
+.grid-card:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.grid-card .icon{
+  width:48px;height:48px;border-radius:16px;margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.grid-card .icon svg{width:24px;height:24px}
+.grid-card .title{font-size:15px;font-weight:700;color:var(--txt)}
+.grid-card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.ic-plan{background:var(--accent-light);color:var(--accent)}
+.ic-english{background:#dcfce7;color:var(--green)}
+.ic-workout{background:#fee2e2;color:var(--red)}
+.ic-finance{background:#fef9c3;color:#a16207}
+
+/* ===== 页面通用 ===== */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-header h1{font-size:22px;font-weight:800}
+.page-header .back{
+  padding:8px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);
+  color:var(--muted);font-size:13px;cursor:pointer;transition:all .2s;
+}
+.page-header .back:hover{color:var(--txt)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .icon{width:20px;height:20px;color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:10px 18px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-ghost{background:var(--surface2);color:var(--txt2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3)}
+.btn-sm{padding:7px 13px;font-size:12px}
+
+/* ===== 学习计划 - 任务列表 ===== */
+.task-input-row{display:flex;gap:8px;margin-bottom:14px}
+.task-input{
+  flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--txt);
+  border-radius:12px;padding:12px 14px;font-size:14px;outline:none;font-family:inherit;
+}
+.task-input:focus{border-color:var(--accent)}
+.task-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface2);border-radius:12px;padding:14px 16px;margin-bottom:8px;
+  transition:all .2s;cursor:pointer;
+}
+.task-item:hover{background:var(--surface3)}
+.task-item.done{opacity:.5}
+.task-item.done .task-text{text-decoration:line-through;color:var(--muted)}
+.task-circle{
+  width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-size:12px;color:transparent;
+}
+.task-item.done .task-circle{
+  background:var(--green);border-color:var(--green);color:#fff;
+  animation:bounce .5s ease;
+}
+@keyframes bounce{0%{transform:scale(.5)}30%{transform:scale(1.3)}50%{transform:scale(.9)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.task-text{flex:1;font-size:14px;font-weight:500}
+.task-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px}
+.task-del:hover{color:var(--red)}
+
+/* ===== 英语播放器 ===== */
+.player-box{
+  display:flex;align-items:center;gap:10px;background:var(--surface2);
+  border-radius:12px;padding:10px 14px;flex-wrap:wrap;
+}
+.play-btn{
+  width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+}
+.play-btn:hover{background:#2563eb}
+.play-btn svg{width:14px;height:14px}
+.seek-bar{flex:1;min-width:100px;height:5px;background:var(--border);border-radius:3px;position:relative}
+.seek-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .1s linear}
+.seek-bar input[type=range]{position:absolute;top:-7px;left:0;width:100%;-webkit-appearance:none;background:transparent;height:18px;cursor:pointer}
+.seek-bar input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#fff;border:1px solid var(--border2)}
+.time-label{font-size:11px;color:var(--muted);min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+.speed-select{
+  background:var(--surface3);border:1px solid var(--border);color:var(--txt);
+  border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer;outline:none;
+}
+
+/* ===== 文章 ===== */
+.article-box{background:var(--surface2);border-radius:14px;padding:18px;margin-bottom:12px;border-left:3px solid var(--accent)}
+.article-box .src{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:6px}
+.article-box h3{font-size:17px;margin-bottom:10px;line-height:1.4}
+.article-box .body{font-size:14px;line-height:1.8;color:var(--txt2);max-height:320px;overflow-y:auto}
+.article-box .body p{margin-bottom:10px}
+.article-box .body .word{transition:all .15s;padding:1px 1px;border-radius:3px}
+.article-box .body .word.active{font-weight:800;color:#fff;background:var(--accent);border-radius:4px;padding:1px 4px}
+.article-translation{background:var(--surface3);border-radius:12px;padding:16px;margin-top:12px;border-left:3px solid var(--cyan)}
+.article-translation .trans-label{font-size:12px;color:var(--cyan);font-weight:700;margin-bottom:8px}
+.article-translation .trans-body p{font-size:14px;line-height:1.8;color:var(--muted);margin-bottom:8px}
+.article-toggle-trans{text-align:center;margin-top:8px}
+.article-toggle-trans button{background:none;border:1px solid var(--border2);color:var(--muted);font-size:12px;padding:5px 14px;border-radius:8px;cursor:pointer;transition:all .2s}
+.article-toggle-trans button:hover{color:var(--accent);border-color:var(--accent)}
+
+/* ===== 好句收集 ===== */
+.quote-input-row{display:flex;gap:8px;margin-bottom:12px}
+.quote-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--txt);border-radius:12px;padding:11px 14px;font-size:14px;outline:none;font-family:inherit;resize:vertical;min-height:42px}
+.quote-input:focus{border-color:var(--accent)}
+.quote-list{max-height:360px;overflow-y:auto}
+.quote-item{background:var(--surface2);border-radius:12px;padding:13px 15px;margin-bottom:8px;border-left:3px solid var(--cyan)}
+.quote-item .text{font-size:14px;line-height:1.7}
+.quote-item .meta{font-size:11px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+.quote-item .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px}
+.quote-item .del:hover{color:var(--red)}
+
+/* ===== 口语练习 ===== */
+.daily-avatar{
+  display:flex;align-items:center;gap:14px;
+  background:linear-gradient(135deg,var(--accent-light),rgba(139,92,246,.08));
+  border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border);
+}
+.daily-avatar .av{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--cyan),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 14px rgba(6,182,212,.3);
+}
+.daily-avatar .info .t{font-size:15px;font-weight:700}
+.daily-avatar .info .d{font-size:12px;color:var(--muted);margin-top:2px}
+
+.topic-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.topic-tab{padding:7px 14px;border-radius:20px;font-size:12px;background:var(--surface2);color:var(--muted);cursor:pointer;border:1px solid var(--border);transition:all .2s}
+.topic-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.topic-tab:hover:not(.active){color:var(--txt)}
+
+.dialogue-box{background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:14px}
+.dialogue-line{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.dialogue-line.ai{flex-direction:row}
+.dialogue-line.user{flex-direction:row-reverse}
+.dialogue-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.dialogue-line.ai .dialogue-avatar{background:linear-gradient(135deg,var(--accent),var(--cyan))}
+.dialogue-line.user .dialogue-avatar{background:linear-gradient(135deg,var(--pink),var(--orange))}
+.dialogue-bubble{background:var(--surface);border-radius:14px;padding:10px 14px;max-width:76%;font-size:14px;line-height:1.6;border:1px solid var(--border)}
+.dialogue-line.user .dialogue-bubble{background:var(--accent-light);border-color:transparent}
+.dialogue-en{font-weight:500}
+.dialogue-zh{font-size:12px;color:var(--muted);margin-top:3px}
+
+.speak-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface2);border-radius:14px;padding:14px}
+.mic-btn{width:50px;height:50px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.mic-btn:hover{transform:scale(1.05)}
+.mic-btn.recording{background:var(--red);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+.mic-btn svg{width:20px;height:20px}
+.speak-result{flex:1;min-width:200px}
+.speak-result .you-said{font-size:12px;color:var(--muted);margin-bottom:4px}
+.speak-result .said-text{font-size:15px;font-weight:500}
+.speak-result .feedback{margin-top:8px;font-size:13px;padding:8px 12px;border-radius:8px}
+.speak-result .feedback.good{background:rgba(34,197,94,.1);color:#16a34a}
+.speak-result .feedback.bad{background:rgba(239,68,68,.1);color:var(--red)}
+
+/* ===== 锻炼视频 ===== */
+.workout-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);transition:all .2s}
+.workout-card:hover{box-shadow:var(--shadow2)}
+.workout-thumb{height:130px;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.workout-thumb .thumb-bg{position:absolute;inset:0;opacity:.35;transition:opacity .2s}
+.workout-card:hover .thumb-bg{opacity:.5}
+.workout-thumb .play-overlay{position:relative;z-index:2;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.workout-card:hover .play-overlay{transform:scale(1.1);background:rgba(255,255,255,.3)}
+.workout-thumb .play-overlay svg{width:20px;height:20px;color:#fff}
+.workout-thumb .duration{position:absolute;bottom:10px;right:12px;z-index:2;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:3px 8px;border-radius:4px}
+.workout-body{padding:15px 17px}
+.workout-body h3{font-size:15px;font-weight:700;margin-bottom:3px}
+.workout-body .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.workout-body .desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.workout-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.workout-foot .check-state{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.workout-foot .check-state.done{color:var(--green)}
+.workout-foot .check-state .cb{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.workout-foot .check-state:hover .cb{border-color:var(--accent)}
+.workout-foot .check-state.done .cb{background:var(--green);border-color:var(--green);color:#fff;font-size:13px}
+
+/* ===== 财经 ===== */
+.fin-summary{background:linear-gradient(135deg,var(--accent-light),rgba(251,191,36,.08));border-radius:18px;padding:18px;margin-bottom:16px;border:1px solid var(--border)}
+.fin-summary h3{font-size:16px;margin-bottom:10px}
+.fin-summary .points{font-size:14px;line-height:1.8;padding-left:18px}
+.fin-summary .points li{margin-bottom:4px;color:var(--txt2)}
+.fin-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.fin-card .tag{display:inline-block;font-size:11px;padding:2px 10px;border-radius:10px;margin-bottom:8px;font-weight:600}
+.fin-card .tag.news{background:var(--accent-light);color:var(--accent)}
+.fin-card .tag.market{background:var(--yellow-light);color:#a16207}
+.fin-card h3{font-size:16px;margin-bottom:8px}
+.fin-card .content{font-size:14px;line-height:1.8;color:var(--txt2)}
+.fin-card .content p{margin-bottom:6px}
+.fin-card .source{font-size:11px;color:var(--muted);margin-top:8px}
+
+/* ===== 历史记录 ===== */
+.history-section{margin-top:20px}
+.history-section .h-title{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.history-list{max-height:420px;overflow-y:auto}
+.history-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:11px 13px;margin-bottom:7px;font-size:13px}
+.history-item .h-date{color:var(--muted);font-size:11px;min-width:85px;font-variant-numeric:tabular-nums}
+.history-item .h-text{flex:1;color:var(--txt2)}
+.history-item .h-badge{font-size:10px;padding:2px 8px;border-radius:6px;background:var(--surface3);color:var(--muted)}
+.history-empty{text-align:center;padding:24px;color:var(--muted2);font-size:13px}
+
+/* ===== 庆祝弹窗 ===== */
+.celebrate{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  background:var(--green);color:#fff;padding:16px 32px;border-radius:20px;
+  font-size:18px;font-weight:800;z-index:300;box-shadow:var(--shadow2);
+  pointer-events:none;transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;gap:10px;
+}
+.celebrate.show{transform:translate(-50%,-50%) scale(1)}
+.celebrate .emoji{font-size:28px;animation:spin .6s ease}
+@keyframes spin{from{transform:rotate(0) scale(0)}to{transform:rotate(360deg) scale(1)}}
+
+/* 移动端 */
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;z-index:98;background:var(--surface);padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;gap:12px}
+.mobile-header .burger{background:none;border:none;color:var(--txt);cursor:pointer;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.mobile-header .burger svg{width:22px;height:22px}
+.mobile-header .m-title{font-size:16px;font-weight:800;letter-spacing:1px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+.overlay.show{display:block}
+
+@media(max-width:1024px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding-top:0}
+  .mobile-header{display:flex}
+  .page{padding:56px 14px 32px}
+}
+@media(max-width:640px){
+  :root{--sidebar-w:260px}
+  .grid{gap:10px}
+  .hero-left .time{font-size:38px}
+  .hero-weather .w-temp{font-size:24px}
+  .player-box{width:100%}
+  .page-header h1{font-size:18px}
+  .speak-controls{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- 庆祝弹窗 -->
+<div class="celebrate" id="celebrate"><span class="emoji">🎉</span><span>庆祝完成！</span></div>
+
+<!-- 移动端顶栏 -->
+<div class="mobile-header">
+  <button class="burger" onclick="toggleSidebar()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <span class="m-title" id="mobileTitle">衡时造境</span>
+</div>
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- 侧边栏 -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">衡</div>
+    <h2>衡时造境</h2>
+    <p>HENGSHI ZAOJING</p>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" data-page="home" onclick="switchPage('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      <span>首页</span>
+    </div>
+    <div class="nav-item" data-page="plan" onclick="switchPage('plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+      <span>学习计划</span>
+    </div>
+    <div class="nav-item" data-page="english" onclick="switchPage('english')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span>英语学习</span>
+    </div>
+    <div class="nav-item" data-page="workout" onclick="switchPage('workout')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 6.5h11M6.5 17.5h11M4 9.5v5M20 9.5v5M6.5 9.5v5h11v-5z"/></svg>
+      <span>每日锻炼</span>
+    </div>
+    <div class="nav-item" data-page="finance" onclick="switchPage('finance')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      <span>财经分析</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span><span id="themeText">深色模式</span>
+    </button>
+    <div class="streak" id="streakInfo">连续打卡 0 天</div>
+    <button class="install-btn" onclick="installApp()">📱 添加到桌面</button>
+  </div>
+</aside>
+
+<!-- 主内容 -->
+<main class="main" id="main">
+
+<!-- ========== 首页 ========== -->
+<section class="page active" id="page-home">
+  <div class="hero-card">
+    <div class="hero-top">
+      <div class="hero-left">
+        <div class="date" id="heroDate"></div>
+        <div class="time" id="heroTime">21:40</div>
+        <div class="sec" id="heroSec">:00</div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-weather">
+          <span class="w-icon" id="weatherIcon">☀️</span>
+          <span class="w-temp" id="weatherTemp">--°</span>
+        </div>
+        <div class="w-desc" id="weatherDesc">加载天气中…</div>
+      </div>
+    </div>
+    <div class="hero-streak">
+      <div class="item">连续 <span class="num" id="heroStreak">0</span> 天</div>
+      <div class="item">累计 <span class="num" id="heroTotal">0</span> 天</div>
+    </div>
+    <div class="week-bar" id="weekBar">
+      <div class="week-day">一</div><div class="week-day">二</div><div class="week-day">三</div>
+      <div class="week-day">四</div><div class="week-day">五</div><div class="week-day">六</div><div class="week-day">日</div>
+    </div>
+  </div>
+
+  <div class="quote-card">
+    <div class="label">☀️ 每日一句</div>
+    <div class="cn" id="dailyQuoteCn">保持热爱，奔赴山海。</div>
+    <div class="en" id="dailyQuoteEn">Keep your passion alive and chase your horizons.</div>
+  </div>
+
+  <div class="grid">
+    <div class="grid-card" onclick="switchPage('plan')">
+      <div class="icon ic-plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="title">学习计划</div>
+      <div class="sub" id="homePlanCount">0 项任务</div>
+    </div>
+    <div class="grid-card" onclick="switchPage('english')">
+      <div class="icon ic-english"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="title">英语学习</div>
+      <div class="sub" id="homeEnCount">0 次练习</div>
+    </div>
+    <div class="grid-card" onclick="switchPage('workout')">
+      <div class="icon ic-workout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11M6.5 17.5h11M4 9.5v5M20 9.5v5M6.5 9.5v5h11v-5z"/></svg></div>
+      <div class="title">每日锻炼</div>
+      <div class="sub" id="homeWoCount">0/4 今日</div>
+    </div>
+    <div class="grid-card" onclick="switchPage('finance')">
+      <div class="icon ic-finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div>
+      <div class="title">财经分析</div>
+      <div class="sub" id="homeFinCount">0 篇阅读</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 学习计划 ========== -->
+<section class="page" id="page-plan">
+  <div class="page-header"><h1>📋 学习计划</h1><button class="back" onclick="switchPage('home')">← 首页</button></div>
+  <div class="card">
+    <div class="card-title"><span class="icon">✏️</span>添加今日打卡任务</div>
+    <div class="task-input-row">
+      <input type="text" class="task-input" id="taskInput" placeholder="输入任务名称，回车添加…" onkeydown="if(event.key==='Enter')addTask()">
+      <button class="btn btn-primary" onclick="addTask()">添加</button>
+    </div>
+    <div id="taskList"></div>
+  </div>
+  <div class="history-section">
+    <div class="h-title">🕐 任务历史</div>
+    <div class="history-list" id="planHistory"></div>
+  </div>
+</section>
+
+<!-- ========== 英语学习 ========== -->
+<section class="page" id="page-english">
+  <div class="page-header">
+    <h1>📚 英语学习</h1>
+    <div class="player-box">
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="seek-bar"><div class="seek-fill" id="seekFill"></div><input type="range" id="seekInput" min="0" max="100" value="0" step="0.1" oninput="seekAudio(this.value)"></div>
+      <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+      <select class="speed-select" id="speedSelect" onchange="changeSpeed()">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1.0x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2.0x</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 今日文章 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📄</span>今日好文 <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="markRead()">✓ 已读</button></div>
+    <div id="articleContainer"></div>
+  </div>
+
+  <!-- 好句收集 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">✨</span>好句收集</div>
+    <div class="quote-input-row"><textarea class="quote-input" id="quoteInput" placeholder="记录读到的好句子…" rows="2"></textarea><button class="btn btn-primary" onclick="addQuote()">收藏</button></div>
+    <div class="quote-list" id="quoteList"></div>
+  </div>
+
+  <!-- 口语练习 -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🗣️</span>口语练习 · AI纠正</div>
+    <div class="daily-avatar">
+      <div class="av">🎯</div>
+      <div class="info">
+        <div class="t" id="enTopicName">今日话题：自我介绍</div>
+        <div class="d">点击麦克风说英文，AI识别并纠正发音</div>
+      </div>
+    </div>
+    <div class="topic-tabs" id="topicTabs"></div>
+    <div class="dialogue-box" id="dialogueBox"></div>
+    <div class="speak-controls">
+      <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+      </button>
+      <div class="speak-result" id="speakResult"><div class="you-said">点击麦克风说英文，AI会帮你纠正</div></div>
+    </div>
+  </div>
+
+  <div class="history-section"><div class="h-title">🕐 学习历史</div><div class="history-list" id="enHistory"></div></div>
+</section>
+
+<!-- ========== 每日锻炼 ========== -->
+<section class="page" id="page-workout">
+  <div class="page-header"><h1>💪 每日锻炼</h1><button class="back" onclick="switchPage('home')">← 首页</button></div>
+  <div class="card" style="background:linear-gradient(135deg,var(--accent-light),rgba(251,191,36,.08));border:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;color:var(--muted)">今日完成</div><div style="font-size:28px;font-weight:800;color:var(--accent)" id="woStatToday">0/4</div></div>
+      <div style="text-align:right"><div style="font-size:13px;color:var(--muted)">累计打卡</div><div style="font-size:22px;font-weight:800" id="woStatTotal">0</div></div>
+    </div>
+  </div>
+  <div id="workoutContainer"></div>
+  <div class="history-section"><div class="h-title">🕐 锻炼历史</div><div class="history-list" id="woHistory"></div></div>
+</section>
+
+<!-- ========== 财经分析 ========== -->
+<section class="page" id="page-finance">
+  <div class="page-header"><h1>📈 财经分析</h1><button class="back" onclick="switchPage('home')">← 首页</button></div>
+  <div class="fin-summary">
+    <h3>📊 今日市场总结</h3>
+    <ul class="points" id="finSummary"></ul>
+  </div>
+  <div class="card"><div class="card-title"><span class="icon">📰</span>财经新闻细节分析</div><div id="finNewsContainer"></div></div>
+  <div class="card"><div class="card-title"><span class="icon">📊</span>市场分析研究</div><div id="finMarketContainer"></div></div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📝</span>我的笔记</div>
+    <div class="quote-input-row"><textarea class="quote-input" id="finNoteInput" placeholder="记录你的财经思考…" rows="2"></textarea><button class="btn btn-primary" onclick="addFinNote()">记录</button></div>
+    <div class="quote-list" id="finNoteList"></div>
+  </div>
+  <div class="history-section"><div class="h-title">🕐 财经历史</div><div class="history-list" id="finHistory"></div></div>
+</section>
+
+</main>
+
+<script>
+// ========== 数据层 ==========
+const DB_KEY='hengshi_db_v1'; const THEME_KEY='hengshi_theme';
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const nowTime=()=>{const d=new Date();return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+
+function defaultDB(){
+  return{
+    date:todayKey(),streak:0,totalDays:0,lastDoneDate:null,
+    plan:{tasks:[],history:[]},
+    en:{total:0,accSum:0,currentTopic:0,readToday:false,articlesRead:0,quotes:[],history:[]},
+    wo:{checks:{},totalChecks:0,history:[]},
+    fin:{notes:[],totalRead:0,days:0,history:[]},
+  };
+}
+let db=loadDB();
+function loadDB(){
+  try{const raw=localStorage.getItem(DB_KEY);if(!raw)return defaultDB();
+    const s=JSON.parse(raw);
+    if(s.date!==todayKey()){s.date=todayKey();s.plan.tasks=s.plan.tasks.map(t=>({...t,done:false}));s.en.readToday=false;}
+    const def=defaultDB();for(const k in def){if(s[k]===undefined)s[k]=def[k]}return s;
+  }catch(e){return defaultDB()}
+}
+function saveDB(){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+
+// ========== 主题 ==========
+function initTheme(){const t=localStorage.getItem(THEME_KEY)||'light';document.body.setAttribute('data-theme',t);updateThemeBtn(t)}
+function toggleTheme(){const c=document.body.getAttribute('data-theme');const n=c==='dark'?'light':'dark';document.body.setAttribute('data-theme',n);localStorage.setItem(THEME_KEY,n);updateThemeBtn(n)}
+function updateThemeBtn(t){const d=t==='dark';document.getElementById('themeIcon').textContent=d?'☀️':'🌙';document.getElementById('themeText').textContent=d?'浅色模式':'深色模式'}
+
+// ========== 页面切换 ==========
+const pageTitles={home:'衡时造境',plan:'学习计划',english:'英语学习',workout:'每日锻炼',finance:'财经分析'};
+function switchPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
+  document.getElementById('mobileTitle').textContent=pageTitles[p];
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.querySelector('.main').scrollTop=0;
+  if(p==='home')renderHome();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+
+// ========== 时间 & 天气 ==========
+function updateTime(){
+  const d=new Date();
+  document.getElementById('heroTime').textContent=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('heroSec').textContent=':'+String(d.getSeconds()).padStart(2,'0');
+}
+function setDate(){
+  const d=new Date();const week=['日','一','二','三','四','五','六'][d.getDay()];
+  document.getElementById('heroDate').textContent=`${d.getMonth()+1}月${d.getDate()}日 周${week}`;
+  document.querySelectorAll('.week-day').forEach((el,i)=>{
+    el.classList.remove('today','done');
+    if(i+1===(d.getDay()||7))el.classList.add('today');
+  });
+}
+// 天气：使用 wttr.in 免费API
+function loadWeather(){
+  fetch('https://wttr.in/?format=j1')
+    .then(r=>r.json())
+    .then(data=>{
+      const cur=data.current_condition[0];
+      const temp=cur.temp_C;
+      const desc=cur.weatherDesc[0].value;
+      const code=cur.weatherCode;
+      // 天气图标映射
+      const iconMap={113:'☀️',116:'⛅️',119:'☁️',122:'☁️',143:'🌫️',176:'🌦️',179:'🌨️',182:'🌨️',185:'🌨️',200:'⛈️',227:'🌨️',230:'❄️',248:'🌫️',260:'🌫️',263:'🌦️',266:'🌦️',281:'🌧️',284:'🌧️',293:'🌦️',296:'🌧️',299:'🌧️',302:'🌧️',305:'🌧️',308:'🌧️',311:'🌧️',314:'🌧️',317:'🌨️',320:'🌨️',323:'🌨️',326:'🌨️',329:'❄️',332:'❄️',335:'❄️',338:'❄️',350:'🌧️',353:'🌦️',356:'🌧️',359:'🌧️',362:'🌨️',365:'🌨️',368:'🌨️',371:'❄️',374:'🌧️',377:'🌧️',386:'⛈️',389:'⛈️',392:'🌨️',395:'❄️'};
+      document.getElementById('weatherIcon').textContent=iconMap[code]||'☁️';
+      document.getElementById('weatherTemp').textContent=temp+'°';
+      document.getElementById('weatherDesc').textContent=desc;
+    })
+    .catch(()=>{
+      document.getElementById('weatherIcon').textContent='🌤️';
+      document.getElementById('weatherTemp').textContent='--°';
+      document.getElementById('weatherDesc').textContent='天气获取失败';
+    });
+}
+
+// ========== 庆祝 ==========
+function celebrate(msg){
+  const el=document.getElementById('celebrate');
+  el.querySelector('span:last-child').textContent=msg||'庆祝完成！';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ========== 连续天数 ==========
+function updateStreak(){
+  const today=todayKey();
+  const hasAct=db.plan.tasks.some(t=>t.done)||db.en.history.some(h=>h.date===today)||db.wo.history.some(h=>h.date===today)||db.fin.history.some(h=>h.date===today);
+  if(hasAct&&db.lastDoneDate!==today){
+    const y=new Date();y.setDate(y.getDate()-1);
+    const yk=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
+    db.streak=(db.lastDoneDate===yk)?db.streak+1:1;db.lastDoneDate=today;saveDB();
+  }
+  document.getElementById('streakInfo').textContent=`连续打卡 ${db.streak} 天`;
+  document.getElementById('heroStreak').textContent=db.streak;
+  document.getElementById('heroTotal').textContent=db.totalDays;
+}
+
+// ========== 首页 ==========
+const quotes=[
+  {cn:'保持热爱，奔赴山海。',en:'Keep your passion alive and chase your horizons.'},
+  {cn:'星光不问赶路人，时光不负有心人。',en:'The stars don\'t ask the traveler; time rewards the devoted.'},
+  {cn:'种一棵树最好的时间是十年前，其次是现在。',en:'The best time to plant a tree was ten years ago. The second best time is now.'},
+  {cn:'每一次努力，都是幸运的伏笔。',en:'Every effort is a prelude to good fortune.'},
+  {cn:'追光的人，终会光芒万丈。',en:'Those who chase the light will eventually shine.'},
+];
+function renderHome(){
+  const qi=new Date().getDate()%quotes.length;
+  document.getElementById('dailyQuoteCn').textContent=quotes[qi].cn;
+  document.getElementById('dailyQuoteEn').textContent=quotes[qi].en;
+  document.getElementById('homePlanCount').textContent=`${db.plan.tasks.filter(t=>t.done).length}/${db.plan.tasks.length} 项任务`;
+  document.getElementById('homeEnCount').textContent=`${db.en.total} 次练习`;
+  const wd=workouts.filter(w=>db.wo.checks[w.id+'_'+todayKey()]).length;
+  document.getElementById('homeWoCount').textContent=`${wd}/4 今日`;
+  document.getElementById('homeFinCount').textContent=`${db.fin.totalRead} 篇阅读`;
+}
+
+// ========== 学习计划 ==========
+function addTask(){
+  const input=document.getElementById('taskInput');const text=input.value.trim();if(!text)return;
+  db.plan.tasks.push({id:'t'+Date.now(),text,done:false,date:todayKey()});
+  input.value='';saveDB();renderTasks();renderHome();
+}
+function toggleTask(id){
+  const t=db.plan.tasks.find(x=>x.id===id);if(!t)return;
+  t.done=!t.done;
+  if(t.done){
+    db.plan.history.unshift({date:todayKey(),time:nowTime(),text:`完成「${t.text}」`});
+    celebrate(`🎉 完成「${t.text}」！`);
+    // 计入总天数
+    if(db.lastDoneDate!==todayKey()){db.totalDays++;}
+  }else{
+    db.plan.history=db.plan.history.filter(h=>!h.text.includes(t.text));
+  }
+  saveDB();renderTasks();renderPlanHistory();renderHome();updateStreak();
+}
+function delTask(id){db.plan.tasks=db.plan.tasks.filter(x=>x.id!==id);saveDB();renderTasks();renderHome()}
+function renderTasks(){
+  const el=document.getElementById('taskList');
+  if(!db.plan.tasks.length){el.innerHTML='<div class="history-empty">暂无任务，添加你的第一个打卡任务吧！</div>';return}
+  el.innerHTML=db.plan.tasks.map(t=>`
+    <div class="task-item ${t.done?'done':''}" onclick="toggleTask('${t.id}')">
+      <div class="task-circle">✓</div>
+      <div class="task-text">${escapeHtml(t.text)}</div>
+      <button class="task-del" onclick="event.stopPropagation();delTask('${t.id}')">✕</button>
+    </div>`).join('');
+}
+function renderPlanHistory(){
+  const el=document.getElementById('planHistory');
+  if(!db.plan.history.length){el.innerHTML='<div class="history-empty">暂无记录</div>';return}
+  el.innerHTML=db.plan.history.map(h=>`<div class="history-item"><div class="h-date">${h.date}<br><span style="font-size:10px">${h.time}</span></div><div class="h-text">${h.text}</div><div class="h-badge" style="background:rgba(34,197,94,.1);color:#16a34a">✓</div></div>`).join('');
+}
+
+// ========== 英语：文章 & 播放器 ==========
+const articles=[
+  {src:'TED Talks',title:'Grit: The Power of Passion and Perseverance',
+   paragraphs:[
+     'When I was 27 years old, I left a demanding job in management consulting to teach math to seventh graders in a New York City public school. And what I quickly realized was that IQ was not the only difference between my best and my worst students.',
+     'Some of my strongest performers did not have stratospheric IQ scores. Some of my smartest kids were not doing so well. And that got me thinking. The kind of math you learn in middle school is hard. But effort is incredibly important.',
+     'I went to graduate school to become a psychologist. I started studying kids and adults in all kinds of super challenging settings. In every study, one characteristic emerged as a significant predictor of success: grit.',
+     'Grit is passion and perseverance for very long-term goals. Grit is having stamina. Grit is sticking with your future, day in, day out, not just for the week, not just for the month, but for years. And working really hard to make that future a reality.',
+     'Talent does not make you gritty. Our data show many talented individuals simply do not follow through on their commitments. In fact, in our data, grit is usually unrelated or even inversely related to measures of talent.',
+     'So far, the best idea I have heard about building grit in kids is something called growth mindset. This is the belief that the ability to learn is not fixed, that it can change with your effort. When kids learn about the brain, they are much more likely to persevere when they fail.'
+   ],
+   translation:[
+     '当我27岁时，我离开了管理咨询这份要求很高的工作，去纽约一所公立学校教七年级学生数学。我很快意识到，IQ并不是我最优秀的学生和最差的学生之间唯一的区别。',
+     '我表现最好的一些学生并没有极高的IQ分数。我最聪明的一些孩子学得并不好。这让我开始思考。你在中学学的数学确实很难。但努力是极其重要的。',
+     '我去了研究生院成为一名心理学家。我开始在各种极具挑战性的环境中研究儿童和成人。在每一项研究中，有一个特征都是成功的显著预测因子：毅力。',
+     '毅力是对长期目标的热情和坚持。毅力是有耐力。毅力是坚持你的未来，日复一日，不仅仅是一周，不仅仅是一个月，而是多年。并且非常努力地让那个未来成为现实。',
+     '天赋并不能让你有毅力。我们的数据显示，许多有才华的人并不能坚持他们的承诺。事实上，在我们的数据中，毅力通常与天赋无关，甚至成反比。',
+     '到目前为止，我听到的关于培养孩子毅力的最好想法叫做成长型思维。这是一种认为学习能力不是固定的信念，它可以通过你的努力而改变。当孩子们了解大脑时，他们更有可能在失败时坚持下去。'
+   ],
+   audioText:'When I was 27 years old, I left a demanding job in management consulting to teach math to seventh graders in a New York City public school. And what I quickly realized was that IQ was not the only difference between my best and my worst students. Some of my strongest performers did not have stratospheric IQ scores. Some of my smartest kids were not doing so well. Grit is passion and perseverance for very long-term goals. Grit is having stamina. Grit is sticking with your future, day in, day out, not just for the week, not just for the month, but for years. Talent does not make you gritty. In fact, in our data, grit is usually unrelated or even inversely related to measures of talent. The best idea about building grit in kids is something called growth mindset. This is the belief that the ability to learn is not fixed, that it can change with your effort.'
+  },
+];
+let currentArticle=0;
+let audioPlayer={playing:false,progress:0,duration:0,timer:null,utterance:null,speed:1,words:[],wordIdx:0,wordTimer:null,showTrans:false};
+function renderArticle(){
+  const a=articles[currentArticle];
+  // 将每段文字拆成单词span，便于高亮
+  const bodyHtml=a.paragraphs.map(p=>{
+    return '<p>'+p.split(/(\s+)/).map(tok=>{
+      if(/^\s+$/.test(tok)) return tok;
+      // 去掉标点后作为data-word
+      const clean=tok.replace(/[.,!?;:"'()—]/g,'').toLowerCase();
+      return `<span class="word" data-word="${clean}">${tok}</span>`;
+    }).join('')+'</p>';
+  }).join('');
+  const transHtml=a.translation?`<div class="article-translation" id="transBox" style="${audioPlayer.showTrans?'':'display:none'}"><div class="trans-label">📖 中文翻译</div><div class="trans-body">${a.translation.map(p=>`<p>${p}</p>`).join('')}</div></div>`:'';
+  const transBtn=a.translation?`<div class="article-toggle-trans"><button onclick="toggleTrans()">${audioPlayer.showTrans?'隐藏翻译':'显示翻译'}</button></div>`:'';
+  document.getElementById('articleContainer').innerHTML=`
+    <div class="article-box"><div class="src">📚 ${a.src}</div><h3>${a.title}</h3><div class="body" id="articleBody">${bodyHtml}</div></div>
+    ${transHtml}${transBtn}`;
+}
+function toggleTrans(){
+  audioPlayer.showTrans=!audioPlayer.showTrans;
+  const box=document.getElementById('transBox');
+  if(box) box.style.display=audioPlayer.showTrans?'block':'none';
+  // 更新按钮文字
+  const btn=document.querySelector('.article-toggle-trans button');
+  if(btn) btn.textContent=audioPlayer.showTrans?'隐藏翻译':'显示翻译';
+}
+function prevArticle(){currentArticle=(currentArticle-1+articles.length)%articles.length;renderArticle();resetPlayer()}
+function nextArticle(){currentArticle=(currentArticle+1)%articles.length;renderArticle();resetPlayer()}
+function resetPlayer(){if(audioPlayer.playing)togglePlay();audioPlayer.progress=0;updatePlayerUI()}
+function togglePlay(){
+  if(!window.speechSynthesis){alert('浏览器不支持语音合成');return}
+  if(audioPlayer.playing){
+    window.speechSynthesis.cancel();audioPlayer.playing=false;clearInterval(audioPlayer.timer);clearInterval(audioPlayer.wordTimer);
+    document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>';
+    clearHighlight();
+  }else{
+    const text=articles[currentArticle].audioText;
+    // 拆分单词列表
+    audioPlayer.words=text.split(/\s+/).filter(w=>w.length>0);
+    audioPlayer.wordIdx=0;
+    const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=audioPlayer.speed;
+    const wordCount=audioPlayer.words.length;
+    // 估算每个单词的朗读时长（毫秒），基于语速
+    const msPerWord=60000/(2.2*audioPlayer.speed*60/wordCount*wordCount);
+    // 更精确的估算：英文约 2.2 词/秒 在1x语速
+    const totalSec=(wordCount/(2.2*audioPlayer.speed))*60;
+    audioPlayer.duration=totalSec;
+    const msPerWordActual=(totalSec*1000)/wordCount;
+    audioPlayer.playing=true;audioPlayer.progress=0;
+    document.getElementById('playIcon').innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    // 单词高亮计时器
+    highlightWord(0);
+    audioPlayer.wordTimer=setInterval(()=>{
+      audioPlayer.wordIdx++;
+      if(audioPlayer.wordIdx>=audioPlayer.words.length){
+        clearInterval(audioPlayer.wordTimer);
+        clearHighlight();
+        return;
+      }
+      highlightWord(audioPlayer.wordIdx);
+    },msPerWordActual);
+    u.onend=()=>{audioPlayer.playing=false;clearInterval(audioPlayer.timer);clearInterval(audioPlayer.wordTimer);audioPlayer.progress=audioPlayer.duration;updatePlayerUI();clearHighlight();document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>'};
+    u.onerror=()=>{audioPlayer.playing=false;clearInterval(audioPlayer.timer);clearInterval(audioPlayer.wordTimer);clearHighlight();document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>'};
+    window.speechSynthesis.speak(u);
+    audioPlayer.timer=setInterval(()=>{audioPlayer.progress+=0.5;if(audioPlayer.progress>=audioPlayer.duration){audioPlayer.progress=audioPlayer.duration;clearInterval(audioPlayer.timer)}updatePlayerUI()},500);
+  }
+}
+function highlightWord(idx){
+  clearHighlight();
+  const word=audioPlayer.words[idx].replace(/[.,!?;:"'()—]/g,'').toLowerCase();
+  if(!word)return;
+  // 在文章body中找到匹配的word span
+  const spans=document.querySelectorAll('#articleBody .word');
+  // 按顺序匹配——维护一个全局计数
+  if(!audioPlayer._spanMap){
+    audioPlayer._spanMap=Array.from(spans);
+  }
+  // 找到第idx个匹配的非空单词
+  let count=0;
+  for(let i=0;i<audioPlayer._spanMap.length;i++){
+    const w=audioPlayer._spanMap[i].getAttribute('data-word');
+    if(w && w.length>0){
+      if(count===idx){
+        audioPlayer._spanMap[i].classList.add('active');
+        // 滚动到可见
+        audioPlayer._spanMap[i].scrollIntoView({block:'center',behavior:'smooth'});
+        return;
+      }
+      count++;
+    }
+  }
+}
+function clearHighlight(){
+  document.querySelectorAll('#articleBody .word.active').forEach(el=>el.classList.remove('active'));
+  audioPlayer._spanMap=null;
+}
+function seekAudio(val){audioPlayer.progress=(parseFloat(val)/100)*audioPlayer.duration;updatePlayerUI()}
+function changeSpeed(){
+  audioPlayer.speed=parseFloat(document.getElementById('speedSelect').value);
+  if(audioPlayer.playing){togglePlay();togglePlay()}
+}
+function updatePlayerUI(){
+  const pct=audioPlayer.duration?(audioPlayer.progress/audioPlayer.duration*100):0;
+  document.getElementById('seekFill').style.width=pct+'%';
+  document.getElementById('seekInput').value=pct;
+  const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  document.getElementById('timeLabel').textContent=`${fmt(audioPlayer.progress)} / ${fmt(audioPlayer.duration)}`;
+}
+function markRead(){
+  if(!db.en.readToday){db.en.readToday=true;db.en.articlesRead++;db.en.history.unshift({date:todayKey(),time:nowTime(),text:`阅读《${articles[currentArticle].title}》`,type:'read'});saveDB();renderEnHistory();renderHome();updateStreak();celebrate('🎉 阅读完成！')}
+  else alert('今天已经标记过了')
+}
+function addQuote(){
+  const input=document.getElementById('quoteInput');const text=input.value.trim();if(!text)return;
+  db.en.quotes.unshift({id:'q'+Date.now(),text,date:todayKey(),time:nowTime()});
+  db.en.history.unshift({date:todayKey(),time:nowTime(),text:'收藏好句',type:'quote'});
+  input.value='';saveDB();renderQuotes();renderEnHistory();renderHome();updateStreak();celebrate('🎉 好句已收藏！')
+}
+function delQuote(id){db.en.quotes=db.en.quotes.filter(q=>q.id!==id);saveDB();renderQuotes()}
+function renderQuotes(){
+  const el=document.getElementById('quoteList');
+  if(!db.en.quotes.length){el.innerHTML='<div class="history-empty">还没有收藏好句</div>';return}
+  el.innerHTML=db.en.quotes.map(q=>`<div class="quote-item"><div class="text">${escapeHtml(q.text)}</div><div class="meta"><span>${q.date} ${q.time}</span><button class="del" onclick="delQuote('${q.id}')">✕</button></div></div>`).join('');
+}
+
+// ========== 英语：口语练习 ==========
+const topics=[
+  {name:'自我介绍',dialogues:[{role:'ai',en:'Hello! Could you introduce yourself?',zh:'你好！能介绍一下你自己吗？'},{role:'user',en:'Sure, my name is Lily. I am 25 years old and I work as a designer.',zh:'当然，我叫Lily，今年25岁，是一名设计师。'},{role:'ai',en:'That sounds interesting! What do you do in your free time?',zh:'听起来很有趣！你空闲时间喜欢做什么？'},{role:'user',en:'I enjoy reading books and going for walks in the park.',zh:'我喜欢读书和去公园散步。'}]},
+  {name:'点餐',dialogues:[{role:'ai',en:'Welcome! May I take your order?',zh:'欢迎！可以点餐了吗？'},{role:'user',en:'Yes, I would like a cup of coffee and a sandwich, please.',zh:'是的，我想要一杯咖啡和一个三明治。'},{role:'ai',en:'Would you like anything else?',zh:'还需要别的吗？'},{role:'user',en:'No, that is all. Thank you.',zh:'不需要了，谢谢。'}]},
+  {name:'旅行',dialogues:[{role:'ai',en:'Where are you planning to travel next?',zh:'你打算接下来去哪里旅行？'},{role:'user',en:'I want to visit Japan. The food and culture there are amazing.',zh:'我想去日本。那里的食物和文化都很棒。'},{role:'ai',en:'That sounds wonderful! How long will you stay?',zh:'听起来很棒！你打算待多久？'},{role:'user',en:'I plan to stay for two weeks and visit Tokyo and Kyoto.',zh:'我计划待两周，去东京和京都。'}]},
+  {name:'工作',dialogues:[{role:'ai',en:'What do you do for a living?',zh:'你是做什么工作的？'},{role:'user',en:'I am a software engineer. I build mobile applications.',zh:'我是一名软件工程师，开发手机应用。'},{role:'ai',en:'Do you enjoy your job?',zh:'你喜欢你的工作吗？'},{role:'user',en:'Yes, I love solving problems and creating useful products.',zh:'是的，我喜欢解决问题和创造有用的产品。'}]},
+  {name:'天气',dialogues:[{role:'ai',en:'How is the weather today?',zh:'今天天气怎么样？'},{role:'user',en:'It is sunny and warm. Perfect for a picnic.',zh:'晴朗又温暖，很适合野餐。'},{role:'ai',en:'Do you prefer sunny or rainy days?',zh:'你喜欢晴天还是雨天？'},{role:'user',en:'I prefer sunny days because I can go outside and exercise.',zh:'我更喜欢晴天，因为可以出门运动。'}]},
+];
+let currentDialogueIdx=0;
+function renderTopicTabs(){
+  document.getElementById('topicTabs').innerHTML=topics.map((t,i)=>`<div class="topic-tab ${i===db.en.currentTopic?'active':''}" onclick="selectTopic(${i})">${t.name}</div>`).join('');
+}
+function selectTopic(i){db.en.currentTopic=i;currentDialogueIdx=0;saveDB();renderTopicTabs();renderDialogue();document.getElementById('enTopicName').textContent='今日话题：'+topics[i].name}
+function renderDialogue(){
+  const topic=topics[db.en.currentTopic];const lines=topic.dialogues.slice(0,currentDialogueIdx+1);
+  document.getElementById('dialogueBox').innerHTML=lines.map((l,i)=>{
+    const isLast=i===lines.length-1;
+    return `<div class="dialogue-line ${l.role}"><div class="dialogue-avatar">${l.role==='ai'?'🤖':'😊'}</div><div class="dialogue-bubble"><div class="dialogue-en">${l.en}</div><div class="dialogue-zh">${l.zh}</div>${l.role==='ai'&&isLast?`<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="speakText('${l.en.replace(/'/g,"\\'")}')">🔊 听发音</button>`:''}</div></div>`;
+  }).join('')+`<div style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px">${currentDialogueIdx+1} / ${topic.dialogues.length}</div>`;
+}
+function nextDialogue(){currentDialogueIdx=(currentDialogueIdx+1)%topics[db.en.currentTopic].dialogues.length;renderDialogue()}
+function speakText(text){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=0.85;window.speechSynthesis.speak(u)}
+
+let recognition=null,isRecording=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){recognition=new SR();recognition.lang='en-US';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onresult=e=>{const said=e.results[0][0].transcript.trim();analyzeSpeech(said)};
+  recognition.onerror=e=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('speakResult').innerHTML=`<div class="you-said" style="color:var(--red)">识别出错：${e.error}</div>`};
+  recognition.onend=()=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording')};
+}
+function toggleRecording(){
+  if(!recognition){document.getElementById('speakResult').innerHTML='<div class="you-said" style="color:var(--yellow)">浏览器不支持语音识别，请用 Chrome/Edge/Safari</div>';return}
+  if(isRecording){recognition.stop();return}
+  const topic=topics[db.en.currentTopic];
+  const expected=topic.dialogues[currentDialogueIdx]?.role==='user'?topic.dialogues[currentDialogueIdx].en:topic.dialogues.find((d,i)=>i>currentDialogueIdx&&d.role==='user')?.en||'';
+  if(!expected){document.getElementById('speakResult').innerHTML='<div class="you-said">请先听AI提问后再回答</div>';return}
+  recognition._expected=expected;isRecording=true;
+  document.getElementById('micBtn').classList.add('recording');
+  document.getElementById('speakResult').innerHTML='<div class="you-said" style="color:var(--accent)">🎙️ 正在聆听…请说英文</div>';
+  recognition.start();
+}
+function analyzeSpeech(said){
+  const expected=recognition._expected||'';
+  const expWords=expected.toLowerCase().replace(/[.,!?]/g,'').split(/\s+/).filter(w=>w.length>1);
+  const saidWords=said.toLowerCase().replace(/[.,!?]/g,'').split(/\s+/).filter(w=>w.length>1);
+  let matched=0;expWords.forEach(w=>{if(saidWords.some(s=>s.includes(w)||w.includes(s)))matched++});
+  const acc=expWords.length?Math.round(matched/expWords.length*100):0;const good=acc>=80;
+  document.getElementById('speakResult').innerHTML=`
+    <div class="you-said">你说了：</div><div class="said-text">${said}</div>
+    <div class="you-said" style="margin-top:6px">标准答案：</div><div class="said-text" style="color:var(--accent)">${expected}</div>
+    <div class="feedback ${good?'good':'bad'}">${good?'✅ 很棒！':'⚠️ 再试一次'} 准确率 ${acc}%</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="speakText('${expected.replace(/'/g,"\\'")}')">🔊 听标准</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleRecording()">🔄 重试</button>
+      <button class="btn btn-primary btn-sm" onclick="nextDialogue()">➡️ 下一句</button>
+    </div>`;
+  db.en.total++;db.en.accSum+=acc;
+  db.en.history.unshift({date:todayKey(),time:nowTime(),topic:topics[db.en.currentTopic].name,said,expected,acc,type:'speak'});
+  if(db.en.history.length>50)db.en.history=db.en.history.slice(0,50);
+  saveDB();renderEnHistory();renderHome();updateStreak();
+  if(good)celebrate(`🎉 准确率${acc}%！`);
+}
+function renderEnHistory(){
+  const el=document.getElementById('enHistory');
+  if(!db.en.history.length){el.innerHTML='<div class="history-empty">暂无记录</div>';return}
+  el.innerHTML=db.en.history.map(h=>`<div class="history-item"><div class="h-date">${h.date}<br><span style="font-size:10px">${h.time}</span></div><div class="h-text">${h.type==='speak'?`${h.topic}·${h.said.slice(0,20)}…`:h.text}</div><div class="h-badge" style="${h.acc!==undefined?`background:${h.acc>=80?'rgba(34,197,94,.1)':'rgba(239,68,68,.1)'};color:${h.acc>=80?'#16a34a':'var(--red)'}`:''}">${h.acc!==undefined?h.acc+'%':(h.type==='read'?'阅读':'收藏')}</div></div>`).join('');
+}
+
+// ========== 锻炼 ==========
+const workouts=[
+  {id:'w1',title:'欧阳春晓 · 直角肩+少女背',desc:'10分钟轻松练出直角肩，消除斜方肌，改善圆肩驼背',duration:'10:00',url:'https://www.bilibili.com/video/BV1ag4y1B7Z9',color:'linear-gradient(135deg,#ec4899,#f97316)'},
+  {id:'w2',title:'赵天骄 · 眼睛训练',desc:'每天3分钟，练出明亮星星眼，眼肌训练',duration:'3:00',url:'https://www.bilibili.com/video/BV1hLcFzKECt',color:'linear-gradient(135deg,#06b6d4,#3b82f6)'},
+  {id:'w3',title:'熊宝宝 · 大腿内侧训练',desc:'中英字幕，100次大腿内侧训练',duration:'8:00',url:'https://www.bilibili.com/video/BV1Ub4y1B7d5',color:'linear-gradient(135deg,#8b5cf6,#ec4899)'},
+  {id:'w4',title:'帕梅拉 · 腿部拉伸',desc:'10分钟腿部拉伸，拉长肌肉线条，增强柔韧性',duration:'10:00',url:'https://www.bilibili.com/video/BV13v411y7v4',color:'linear-gradient(135deg,#f59e0b,#ef4444)'},
+];
+function renderWorkouts(){
+  document.getElementById('workoutContainer').innerHTML=workouts.map(w=>{
+    const done=db.wo.checks[w.id+'_'+todayKey()];
+    return `<div class="workout-card"><div class="workout-thumb" onclick="openVideo('${w.url}')"><div class="thumb-bg" style="background:${w.color}"></div><div class="play-overlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div><div class="duration">${w.duration}</div></div><div class="workout-body"><h3>${w.title}</h3><div class="meta">⏱️ ${w.duration} · 来自B站</div><div class="desc">${w.desc}</div><div class="workout-foot"><div class="check-state ${done?'done':''}" onclick="toggleWorkout('${w.id}')"><div class="cb">${done?'✓':''}</div><span>${done?'已完成':'点击打卡'}</span></div><button class="btn btn-ghost btn-sm" onclick="openVideo('${w.url}')">去B站观看</button></div></div></div>`;
+  }).join('');
+}
+function openVideo(url){window.open(url,'_blank')}
+function toggleWorkout(id){
+  const key=id+'_'+todayKey();const wasDone=db.wo.checks[key];db.wo.checks[key]=!wasDone;
+  const w=workouts.find(x=>x.id===id);
+  if(!wasDone){db.wo.totalChecks++;db.wo.history.unshift({date:todayKey(),time:nowTime(),text:`完成「${w.title}」`});celebrate(`🎉 完成「${w.title}」！`)}
+  else{db.wo.totalChecks--;db.wo.history=db.wo.history.filter(h=>!h.text.includes(w.title))}
+  saveDB();renderWorkouts();renderWoStats();renderWoHistory();renderHome();updateStreak();
+}
+function renderWoStats(){
+  const td=workouts.filter(w=>db.wo.checks[w.id+'_'+todayKey()]).length;
+  document.getElementById('woStatToday').textContent=`${td}/${workouts.length}`;
+  document.getElementById('woStatTotal').textContent=db.wo.totalChecks;
+}
+function renderWoHistory(){
+  const el=document.getElementById('woHistory');
+  if(!db.wo.history.length){el.innerHTML='<div class="history-empty">暂无锻炼记录</div>';return}
+  el.innerHTML=db.wo.history.map(h=>`<div class="history-item"><div class="h-date">${h.date}<br><span style="font-size:10px">${h.time}</span></div><div class="h-text">${h.text}</div><div class="h-badge" style="background:rgba(34,197,94,.1);color:#16a34a">✓</div></div>`).join('');
+}
+
+// ========== 财经 ==========
+const finSummaryPoints=['央行公布最新LPR利率维持不变，1年期3.45%、5年期以上3.95%，释放稳健货币政策信号，市场流动性保持合理充裕，短期内大幅调整概率较低','A股三大指数震荡整理，上证指数微涨0.15%报3056点，新能源与消费板块表现活跃，北向资金净流入约20亿元，市场情绪谨慎乐观','国际油价小幅上涨，布伦特原油涨0.8%至82美元附近，OPEC+可能延长减产协议至年底，供应紧张预期升温，短期油价仍有上行空间','美联储议息会议在即，市场观望情绪浓厚，预计维持利率不变但措辞可能偏鸽，国内市场建议关注结构性机会，重点布局景气度上行行业'];
+const finNews=[
+  {title:'央行货币政策动向：LPR按兵不动，稳健基调延续',content:'中国人民银行今日公布最新贷款市场报价利率（LPR），1年期LPR维持在3.45%，5年期以上LPR维持在3.95%，均与上月持平。此次LPR保持不变，符合市场普遍预期。央行此举释放了稳健货币政策的明确信号，表明当前利率水平被认为处于合理区间，短期内大幅调整的概率较低。央行在近期公开市场操作中延续精准滴灌思路，通过中期借贷便利（MLF）和逆回购操作灵活投放流动性，确保银行体系流动性保持合理充裕。同时，央行强调将继续加大对实体经济的支持力度，特别是针对小微企业和民营企业的融资需求，通过结构性货币政策工具精准发力。市场分析人士指出，当前国内经济正处于复苏关键期，货币政策需在稳增长与防风险之间取得平衡。预计下半年央行将维持稳健中性的政策基调，不搞大水漫灌，而是通过定向降准、再贷款等工具引导资金流向重点领域和薄弱环节，为经济持续回升提供有力支撑。',source:'综合财经媒体'},
+  {title:'A股市场表现：三大指数震荡整理，结构性行情凸显',content:'今日A股市场呈现震荡整理态势，三大指数走势分化。上证指数微涨0.15%报收3056点，深证成指下跌0.23%，创业板指下跌0.45%。两市全天成交额约7800亿元，较前一交易日小幅萎缩，显示市场交投活跃度有所下降。盘面上，新能源板块领涨，光伏、储能概念表现抢眼，多只个股涨停；消费板块同样活跃，食品饮料、零售涨幅居前，反映市场对消费复苏的预期增强。科技股整体承压，半导体、人工智能概念回调明显，部分前期涨幅较大的个股出现获利了结。北向资金全天净流入约20亿元，连续第三日保持净买入态势，显示外资对A股市场仍具信心。分析人士认为，当前市场处于存量博弈阶段，结构性行情特征明显。短期内指数大幅上涨或下跌的空间有限，建议投资者关注业绩确定性较高的优质标的，重点布局新能源、消费复苏以及国企改革等主题，避免盲目追涨杀跌。',source:'东方财富'},
+  {title:'国际油价走势：OPEC+减产预期升温，布油站上82美元',content:'国际油价今日小幅上涨，布伦特原油期货主力合约上涨0.8%至每桶82美元附近，WTI原油期货同步走强。此次油价上涨主要受到OPEC+减产预期的推动。据悉，OPEC+部长级会议将于下周召开，多位代表透露可能将自愿减产协议延长至今年年底，以应对全球需求增长放缓的压力。市场对供应紧张的担忧情绪明显升温。从供给端看，沙特阿拉伯此前已宣布将100万桶/日的额外减产延续至9月，俄罗斯也表示将减少出口。从需求端看，尽管全球经济增长放缓，但中国和印度的原油需求仍然强劲，为油价提供支撑。分析人士预计，短期内油价仍有上行空间，布伦特原油有望挑战85美元关口。但需关注以下风险因素：一是全球需求放缓超预期，二是美国页岩油产量持续增长，三是地缘政治局势变化。建议投资者密切关注OPEC+会议结果及主要经济体经济数据。',source:'路透社'},
+  {title:'人民币汇率动态：中间价小幅升值，企稳信号明确',content:'人民币兑美元中间价今日报7.12，较上一交易日小幅升值58个基点。在岸人民币日内波动不大，收报7.1150，离岸人民币报7.1180，在岸与离岸价差保持在较小范围内，显示市场预期相对稳定。央行此前明确表示，将保持人民币汇率在合理均衡水平上的基本稳定，坚决对市场单边贬值预期进行纠偏。近期央行通过上调跨境融资宏观审慎参数、发行离岸央票等方式，向市场传递明确的稳汇率信号。市场分析认为，随着国内经济复苏预期增强、中美利差趋于稳定，人民币汇率有望企稳回升。从基本面看，中国贸易顺差依然保持高位，为人民币提供支撑；从政策面看，央行拥有充足的政策工具应对汇率过度波动。不过，短期内美元指数走势、美联储政策路径以及地缘政治因素仍将对人民币汇率产生影响，短期波动属正常现象，不必过度担忧。',source:'中国外汇交易中心'},
+];
+const finMarket=[
+  {title:'本周市场展望：震荡格局延续，关注三大关键因素',content:'预计本周A股市场将延续震荡整理格局，指数层面大幅波动的可能性较小，但结构性机会依然值得把握。投资者需重点关注三大关键因素：第一，国内PMI数据即将公布，制造业和非制造业PMI的变化将反映经济复苏的最新态势，若数据超预期有望提振市场信心；第二，美联储议息会议纪要将发布，市场将从中寻找未来货币政策路径的线索，若措辞偏鸽可能缓解全球风险资产压力；第三，地缘政治风险持续变化，需关注相关冲突进展及对大宗商品供应链的影响。从技术面看，上证指数在3030-3080点区间震荡，成交量是判断方向选择的关键。建议投资者保持耐心，关注景气度上行的行业，如新能源、人工智能和消费复苏主线，同时注意控制仓位，防范外部不确定性带来的波动风险。',source:'市场研究'},
+  {title:'行业配置建议：三条主线布局，攻守兼备',content:'短期建议投资者关注三条主线进行布局。第一，新能源产业链：近期政策支持力度持续加大，光伏装机量超预期，储能需求快速增长，新能源汽车销量保持强劲，整个产业链景气度上行，建议关注具备核心竞争力的龙头企业。第二，消费复苏板块：随着节假日效应显现和促消费政策持续落地，食品饮料、餐饮旅游、零售等行业有望迎来修复性行情，可关注估值合理、业绩确定性高的标的。第三，AI和数字经济主题：技术突破持续驱动产业变革，算力基础设施、大模型应用、数据要素等方向前景广阔，但需注意部分个股短期涨幅较大，存在回调风险。防守配置方面，建议关注高股息蓝筹股，如银行、公用事业、高速公路等，这些板块估值低、分红稳定，在震荡市场中具有较好的防御属性。整体策略上，建议均衡配置，成长与价值并重，避免过度集中于单一赛道。',source:'策略研究'},
+  {title:'风险提示：警惕外部不确定性，合理控制仓位',content:'当前市场环境下，投资者需警惕以下几方面风险。第一，海外央行政策超预期收紧：若美国通胀数据反弹，美联储可能延长高利率周期，这将抑制全球风险偏好，对新兴市场资产形成压力。第二，地缘冲突升级：国际局势的不确定性可能引发大宗商品价格剧烈波动，增加通胀风险，影响企业盈利预期。第三，国内经济复苏不及预期：若内需恢复缓慢、房地产市场持续低迷，可能拖累整体经济增长。第四，市场流动性风险：需关注北向资金流向变化及融资融券余额变动。针对上述风险，建议投资者保持适度仓位，避免过度追高。在操作上，可采用定投策略分批建仓，降低择时风险；同时做好分散投资，不同行业、不同风格资产合理搭配。对于短期涨幅较大的热门题材股，应保持理性，设置止盈止损纪律。长期来看，中国经济转型升级的大方向不变，优质成长股仍具配置价值。',source:'风险提示'},
+];
+function renderFinance(){
+  document.getElementById('finSummary').innerHTML=finSummaryPoints.map(p=>`<li>${p}</li>`).join('');
+  document.getElementById('finNewsContainer').innerHTML=finNews.map((n,i)=>`<div class="fin-card" style="margin-bottom:10px"><span class="tag news">新闻</span><h3>${n.title}</h3><div class="content"><p>${n.content}</p></div><div class="source">来源：${n.source}</div><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="readFinItem(${i})">✓ 已读</button></div>`).join('');
+  document.getElementById('finMarketContainer').innerHTML=finMarket.map(m=>`<div class="fin-card" style="margin-bottom:10px"><span class="tag market">分析</span><h3>${m.title}</h3><div class="content"><p>${m.content}</p></div></div>`).join('');
+}
+function readFinItem(i){
+  db.fin.totalRead++;db.fin.history.unshift({date:todayKey(),time:nowTime(),text:`阅读资讯：${finNews[i].title}`,type:'read'});
+  saveDB();renderFinStats();renderFinHistory();renderHome();updateStreak();celebrate('🎉 资讯已读！');
+}
+function addFinNote(){
+  const input=document.getElementById('finNoteInput');const text=input.value.trim();if(!text)return;
+  db.fin.notes.unshift({id:'fn'+Date.now(),text,date:todayKey(),time:nowTime()});
+  db.fin.history.unshift({date:todayKey(),time:nowTime(),text:`记录笔记：${text.slice(0,20)}${text.length>20?'…':''}`,type:'note'});
+  input.value='';saveDB();renderFinNotes();renderFinStats();renderFinHistory();renderHome();updateStreak();celebrate('🎉 笔记已记录！');
+}
+function delFinNote(id){db.fin.notes=db.fin.notes.filter(n=>n.id!==id);saveDB();renderFinNotes();renderFinStats()}
+function renderFinNotes(){
+  const el=document.getElementById('finNoteList');
+  if(!db.fin.notes.length){el.innerHTML='<div class="history-empty">还没有笔记</div>';return}
+  el.innerHTML=db.fin.notes.map(n=>`<div class="quote-item" style="border-left-color:var(--yellow)"><div class="text">${escapeHtml(n.text)}</div><div class="meta"><span>${n.date} ${n.time}</span><button class="del" onclick="delFinNote('${n.id}')">✕</button></div></div>`).join('');
+}
+function renderFinStats(){document.getElementById('finStatTotal')&&(document.getElementById('finStatTotal').textContent=db.fin.totalRead+db.fin.notes.length);const days=new Set(db.fin.history.map(h=>h.date)).size;db.fin.days=days}
+function renderFinHistory(){
+  const el=document.getElementById('finHistory');
+  if(!db.fin.history.length){el.innerHTML='<div class="history-empty">暂无记录</div>';return}
+  el.innerHTML=db.fin.history.map(h=>`<div class="history-item"><div class="h-date">${h.date}<br><span style="font-size:10px">${h.time}</span></div><div class="h-text">${h.text}</div><div class="h-badge">${h.type==='read'?'阅读':'笔记'}</div></div>`).join('');
+}
+
+// ========== 工具 ==========
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// ========== PWA ==========
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null})}}
+
+// ========== 初始化 ==========
+function init(){
+  initTheme();setDate();setInterval(updateTime,1000);updateTime();loadWeather();
+  renderHome();renderTasks();renderPlanHistory();
+  renderTopicTabs();renderDialogue();renderEnHistory();renderArticle();updatePlayerUI();renderQuotes();
+  renderWorkouts();renderWoStats();renderWoHistory();
+  renderFinance();renderFinNotes();renderFinStats();renderFinHistory();
+  updateStreak();
+}
+init();
+</script>
+</body>
+</html>
